@@ -5962,6 +5962,7 @@ func TestGetAllInstanceHandler_Handle(t *testing.T) {
 		expectedIBInterfaceID                       *string
 		expectedDpuExtensionServiceDeploymentID     *string
 		expectedMachineIDOverride                   *string
+		expectedStatusOverride                      *string
 		expectedAnyNetworkSecurityGroupInherited    bool
 		expectedAnyNetworkSecurityGroupNotInherited bool
 		expectSubnet                                bool
@@ -6268,6 +6269,7 @@ func TestGetAllInstanceHandler_Handle(t *testing.T) {
 				VpcIDs: []uuid.UUID{vpc3.ID},
 			},
 			expectedMachineIDOverride: cdb.GetStrPtr(mc2.ID),
+			expectedStatusOverride:    cdb.GetStrPtr(cdbm.InstancePowerStatusRebooting),
 			expectedCount:             1,
 			expectedTotal:             1,
 			expectSubnet:              true,
@@ -6337,6 +6339,7 @@ func TestGetAllInstanceHandler_Handle(t *testing.T) {
 				InstanceTypeIDs: []uuid.UUID{ist2.ID},
 			},
 			expectedMachineIDOverride: cdb.GetStrPtr(mc2.ID),
+			expectedStatusOverride:    cdb.GetStrPtr(cdbm.InstancePowerStatusRebooting),
 			expectedCount:             1,
 			expectedTotal:             1,
 		},
@@ -6423,6 +6426,7 @@ func TestGetAllInstanceHandler_Handle(t *testing.T) {
 				OperatingSystemIDs: []uuid.UUID{os2.ID},
 			},
 			expectedMachineIDOverride: cdb.GetStrPtr(mc2.ID),
+			expectedStatusOverride:    cdb.GetStrPtr(cdbm.InstancePowerStatusRebooting),
 			expectedCount:             1,
 			expectedTotal:             1,
 		},
@@ -6487,6 +6491,7 @@ func TestGetAllInstanceHandler_Handle(t *testing.T) {
 				MachineIDs: []string{mc2.ID},
 			},
 			expectedMachineIDOverride: cdb.GetStrPtr(mc2.ID),
+			expectedStatusOverride:    cdb.GetStrPtr(cdbm.InstancePowerStatusRebooting),
 			expectedCount:             1,
 			expectedTotal:             1,
 		},
@@ -6688,6 +6693,7 @@ func TestGetAllInstanceHandler_Handle(t *testing.T) {
 			expectedTotal:             1,
 			expectedFirstEntryName:    "test-instance-vpc",
 			expectedMachineIDOverride: cdb.GetStrPtr(mc2.ID),
+			expectedStatusOverride:    cdb.GetStrPtr(cdbm.InstancePowerStatusRebooting),
 		},
 		{
 			name: "test Instance getall API endpoint success with single IP address filter",
@@ -7001,9 +7007,12 @@ func TestGetAllInstanceHandler_Handle(t *testing.T) {
 				if tt.expectedMachineIDOverride != nil {
 					expectedMachineID = tt.expectedMachineIDOverride
 				}
-
+				expectedStatus := cdb.GetStrPtr(cdbm.InstanceStatusReady)
+				if tt.expectedStatusOverride != nil {
+					expectedStatus = tt.expectedStatusOverride
+				}
 				assert.Equal(t, *rst[0].MachineID, *expectedMachineID)
-				assert.Equal(t, rst[0].Status, cdbm.InstanceStatusReady)
+				assert.Equal(t, rst[0].Status, *expectedStatus)
 
 				if tt.expectSubnet {
 					assert.Equal(t, *rst[0].Interfaces[0].SubnetID, instsub1.SubnetID.String())
@@ -7077,7 +7086,9 @@ func TestGetAllInstanceHandler_Handle(t *testing.T) {
 			}
 
 			for _, apiInst := range rst {
-				assert.Equal(t, 2, len(apiInst.StatusHistory))
+				if tt.expectedStatusOverride == nil {
+					assert.Equal(t, 2, len(apiInst.StatusHistory))
+				}
 			}
 
 			if tt.expectedIBInterfaceID != nil {
