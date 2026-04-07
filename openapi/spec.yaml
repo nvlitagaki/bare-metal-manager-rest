@@ -14080,13 +14080,15 @@ components:
             - string
             - 'null'
           format: uuid
-          description: Specified if a Provider owns the Operating System
+          description: 'Deprecated: Infrastructure Provider is now inferred from org membership.'
+          deprecated: true
         tenantId:
           type:
             - string
             - 'null'
           format: uuid
-          description: Specified if a Tenant owns the Operating System
+          description: 'Deprecated: Tenant is now inferred from org membership.'
+          deprecated: true
         siteIds:
           type: array
           items:
