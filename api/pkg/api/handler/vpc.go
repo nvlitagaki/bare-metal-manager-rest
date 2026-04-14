@@ -1416,14 +1416,14 @@ func (gavh GetAllVPCHandler) Handle(c echo.Context) error {
 			logger.Warn().Err(err).Msg("error retrieving Sites from DB by IDs")
 			return cutil.NewAPIErrorResponse(c, http.StatusInternalServerError, "Could not retrieve Sites with IDs specified in query", nil)
 		}
-		// Build a map of sites by ID for efficient lookup
-		sitesByID := make(map[uuid.UUID]bool, len(sites))
+		// Build a set of site IDs for efficient lookup
+		sitesByID := make(map[uuid.UUID]struct{}, len(sites))
 		for _, site := range sites {
-			sitesByID[site.ID] = true
+			sitesByID[site.ID] = struct{}{}
 		}
 		// For each siteIDStr, check if the corresponding site exists
 		for _, siteID := range siteIDs {
-			if !sitesByID[siteID] {
+			if _, ok := sitesByID[siteID]; !ok {
 				return cutil.NewAPIErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("Could not find Site with ID specified in query: %s", siteID.String()), nil)
 			}
 		}
@@ -1501,12 +1501,12 @@ func (gavh GetAllVPCHandler) Handle(c echo.Context) error {
 			logger.Error().Err(err).Msg("error retrieving Network Security Groups from DB")
 			return cutil.NewAPIErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve Network Security Groups specified in query", nil)
 		}
-		networkSecurityGroupIDsMap := make(map[string]bool, len(networkSecurityGroups))
+		networkSecurityGroupIDsMap := make(map[string]struct{}, len(networkSecurityGroups))
 		for _, networkSecurityGroup := range networkSecurityGroups {
-			networkSecurityGroupIDsMap[networkSecurityGroup.ID] = true
+			networkSecurityGroupIDsMap[networkSecurityGroup.ID] = struct{}{}
 		}
 		for _, nsgID := range networkSecurityGroupIDs {
-			if !networkSecurityGroupIDsMap[nsgID] {
+			if _, ok := networkSecurityGroupIDsMap[nsgID]; !ok {
 				return cutil.NewAPIErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("Network Security Group ID: %s specified in query does not exist for current Tenant", nsgID), nil)
 			}
 		}
@@ -1530,12 +1530,12 @@ func (gavh GetAllVPCHandler) Handle(c echo.Context) error {
 			logger.Error().Err(err).Msg("error retrieving NVLink Logical Partitions from DB")
 			return cutil.NewAPIErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve NVLink Logical Partitions specified in query", nil)
 		}
-		nvLinkLogicalPartitionIDsMap := make(map[uuid.UUID]bool, len(nvLinkLogicalPartitions))
+		nvLinkLogicalPartitionIDsMap := make(map[uuid.UUID]struct{}, len(nvLinkLogicalPartitions))
 		for _, nvLinkLogicalPartition := range nvLinkLogicalPartitions {
-			nvLinkLogicalPartitionIDsMap[nvLinkLogicalPartition.ID] = true
+			nvLinkLogicalPartitionIDsMap[nvLinkLogicalPartition.ID] = struct{}{}
 		}
 		for _, nvLinkLogicalPartitionID := range nvLinkLogicalPartitionIDs {
-			if !nvLinkLogicalPartitionIDsMap[nvLinkLogicalPartitionID] {
+			if _, ok := nvLinkLogicalPartitionIDsMap[nvLinkLogicalPartitionID]; !ok {
 				return cutil.NewAPIErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("NVLink Logical Partition ID: %s specified in query does not exist for current Tenant", nvLinkLogicalPartitionID.String()), nil)
 			}
 		}
